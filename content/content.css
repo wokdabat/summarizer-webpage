@@ -1,0 +1,231 @@
+#page-summarizer-root {
+  all: initial;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+#page-summarizer-root * {
+  box-sizing: border-box;
+}
+
+.ps-fab {
+  position: fixed;
+  top: auto;
+  right: 28px;
+  bottom: 28px;
+  left: auto;
+  z-index: 2147483646;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.45);
+  transition: bottom 0.3s ease, right 0.3s ease, left 0.3s ease, top 0.3s ease,
+    transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ps-fab.ps-pos-bl {
+  right: auto;
+  left: 28px;
+}
+
+.ps-fab.ps-pos-tr {
+  bottom: auto;
+  top: 28px;
+}
+
+.ps-fab.ps-pos-tl {
+  bottom: auto;
+  right: auto;
+  top: 28px;
+  left: 28px;
+}
+
+.ps-fab.ps-pos-br-high {
+  bottom: 96px;
+}
+
+.ps-fab.ps-pos-bl-high {
+  right: auto;
+  left: 28px;
+  bottom: 96px;
+}
+
+.ps-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(99, 102, 241, 0.55);
+}
+
+.ps-fab svg {
+  width: 24px;
+  height: 24px;
+}
+
+.ps-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease, background 0.35s ease, backdrop-filter 0.35s ease;
+}
+
+.ps-overlay.ps-visible {
+  pointer-events: auto;
+  opacity: 1;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.ps-dialog {
+  width: min(560px, 100%);
+  max-height: min(80vh, 640px);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.92) translateY(16px);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+}
+
+.ps-dialog.ps-visible {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.ps-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ps-dialog-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.ps-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ps-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.ps-dialog-body {
+  padding: 16px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.ps-page-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6366f1;
+  line-height: 1.4;
+}
+
+.ps-status {
+  color: #64748b;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ps-status::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: ps-spin 0.7s linear infinite;
+}
+
+@keyframes ps-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ps-summary {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #334155;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ps-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.ps-btn {
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.ps-btn-secondary {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.ps-btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+.ps-btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+}
+
+.ps-btn-primary:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.ps-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hidden {
+  display: none !important;
+}

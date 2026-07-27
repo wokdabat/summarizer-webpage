@@ -1,0 +1,6 @@
+{
+  "name": "page-summarizer",
+  "version": "1.0.0",
+  "description": "Summarize webpage content with a floating button and save summaries for later",
+  "private": true
+}
