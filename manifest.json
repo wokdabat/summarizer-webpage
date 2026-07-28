@@ -1,10 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Page Summarizer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Summarize webpage content with a floating button and save summaries for later",
-  "permissions": ["storage", "activeTab"],
-  "host_permissions": ["<all_urls>", "https://api.openai.com/*"],
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://api.openai.com/*"
+  ],
   "action": {
     "default_popup": "popup/index.html",
     "default_icon": {
@@ -23,9 +29,15 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content/content.js"],
-      "css": ["content/content.css"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content/content.js"
+      ],
+      "css": [
+        "content/content.css"
+      ],
       "run_at": "document_idle"
     }
   ]

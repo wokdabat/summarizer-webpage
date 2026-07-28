@@ -2,16 +2,30 @@
 
 A Microsoft Edge extension that summarizes webpage content with a floating button, saves summaries locally, and displays them in the popup.
 
-**Version:** 1.0.0
+**Version:** 1.1.0
 
 ## Features
 
 - Floating summarize button on every webpage
 - Dialog with blurred backdrop and fade-in animation
 - Click outside or press Escape to close
-- Test-mode summary (extracts and previews page text — OpenAI integration ready)
+- OpenAI-powered summaries (configure API key and model in popup)
 - Saves summaries to local storage
-- Popup (380×520px) lists all saved summaries
+- Popup lists all saved summaries
+
+## Versioning
+
+Bump the version in all project files with:
+
+```bash
+npm run version:patch   # small fix         1.1.0 -> 1.1.1
+npm run version:minor   # new feature       1.1.0 -> 1.2.0
+npm run version:major   # breaking change   1.1.0 -> 2.0.0
+npm run version:set -- 1.2.3               # set exact version
+```
+
+Updates `manifest.json`, `package.json`, `popup/index.html`, and `README.md`.
+After bumping, reload the extension in `edge://extensions`.
 
 ## Load in Microsoft Edge
 
@@ -23,10 +37,11 @@ A Microsoft Edge extension that summarizes webpage content with a floating butto
 
 ## Usage
 
-1. Click the floating button on a page
-2. Review the test summary in the dialog
-3. Click **Save Summary** to store it
-4. Click the extension icon in the toolbar to view saved summaries in the popup
+1. Open the popup and save your OpenAI API key and model
+2. Click the floating button on a page
+3. Review the AI summary in the dialog
+4. Click **Save Summary** to store it
+5. Open the popup again to view saved summaries
 
 ## Project structure
 
@@ -40,6 +55,11 @@ summarizer/
 └── icons/
 ```
 
-## Next steps (OpenAI)
+## Scripts
 
-Replace `generateMockSummary()` in `content/content.js` with an API call to OpenAI when you're ready to integrate.
+```bash
+npm run build           # copy extension to dist/page-summarizer
+npm run version:patch   # bump patch version
+npm run version:minor   # bump minor version
+npm run version:major   # bump major version
+```

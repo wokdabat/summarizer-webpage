@@ -1,9 +1,13 @@
 {
   "name": "page-summarizer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Summarize webpage content with a floating button and save summaries for later",
   "private": true,
   "scripts": {
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "version:patch": "node scripts/version.mjs patch",
+    "version:minor": "node scripts/version.mjs minor",
+    "version:major": "node scripts/version.mjs major",
+    "version:set": "node scripts/version.mjs"
   }
 }
