@@ -57,6 +57,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch((err) => sendResponse({ success: false, error: err.message }));
     return true;
   }
+
+  if (message.type === "FETCH_YOUTUBE_CAPTION") {
+    fetchYouTubeCaption(message.url)
+      .then((text) => sendResponse({ success: true, text }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
 });
 
 async function getSummaries() {
@@ -87,12 +94,19 @@ async function summarizePage(payload) {
   }
 
   const prompt =
-    `Summarize the following webpage in clear, concise prose. ` +
-    `Focus on the main points, key takeaways, and important details. ` +
-    `Use short paragraphs or bullet points when helpful.\n\n` +
-    `Title: ${payload.title}\n` +
-    `URL: ${payload.url}\n\n` +
-    `Content:\n${payload.text}`;
+    payload.contentType === "youtube"
+      ? `Summarize the following YouTube video in clear, concise prose. ` +
+        `Focus on the main topics, key points, and important takeaways from the transcript. ` +
+        `Use short paragraphs or bullet points when helpful.\n\n` +
+        `Title: ${payload.title}\n` +
+        `URL: ${payload.url}\n\n` +
+        `Content:\n${payload.text}`
+      : `Summarize the following webpage in clear, concise prose. ` +
+        `Focus on the main points, key takeaways, and important details. ` +
+        `Use short paragraphs or bullet points when helpful.\n\n` +
+        `Title: ${payload.title}\n` +
+        `URL: ${payload.url}\n\n` +
+        `Content:\n${payload.text}`;
 
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
@@ -130,6 +144,25 @@ async function summarizePage(payload) {
   }
 
   return summary;
+}
+
+async function fetchYouTubeCaption(url) {
+  const response = await fetch(url, {
+    headers: {
+      "Accept-Language": "en-US,en;q=0.9",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Caption request failed (${response.status})`);
+  }
+
+  const text = await response.text();
+  if (!text.trim()) {
+    throw new Error("Caption response was empty");
+  }
+
+  return text;
 }
 
 async function saveSummary(payload) {

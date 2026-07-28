@@ -26,7 +26,15 @@
 
     const excerpt = text.slice(0, 280) + (text.length > 280 ? "…" : "");
 
-    return { title, text, excerpt, url: location.href };
+    return { title, text, excerpt, url: location.href, contentType: "page" };
+  }
+
+  async function extractContent() {
+    if (window.PageSummarizerYouTube?.isWatchPage()) {
+      return window.PageSummarizerYouTube.extractContent();
+    }
+
+    return extractPageContent();
   }
 
 
@@ -37,6 +45,7 @@
         title: page.title,
         url: page.url,
         text: page.text,
+        contentType: page.contentType || "page",
       },
     });
 
@@ -216,13 +225,18 @@
   function openDialogLoading(root, page) {
     const overlay = root.querySelector(".ps-overlay");
     const dialog = root.querySelector(".ps-dialog");
+    const dialogTitle = root.querySelector("#ps-dialog-title");
     const pageTitle = root.querySelector(".ps-page-title");
     const status = root.querySelector(".ps-status");
     const summaryEl = root.querySelector(".ps-summary");
     const saveBtn = root.querySelector(".ps-save-btn");
+    const isYouTube = page.contentType === "youtube";
 
-    pageTitle.textContent = page.title;
-    status.textContent = "Generating summary with OpenAI…";
+    dialogTitle.textContent = isYouTube ? "Video Summary" : "Page Summary";
+    pageTitle.textContent = page.title || (isYouTube ? "YouTube video" : "Current page");
+    status.textContent = isYouTube
+      ? "Fetching video transcript…"
+      : "Analyzing page content…";
     status.classList.remove("hidden");
     summaryEl.classList.add("hidden");
     summaryEl.textContent = "";
@@ -238,11 +252,13 @@
   function openDialog(root, page, summaryText) {
     const overlay = root.querySelector(".ps-overlay");
     const dialog = root.querySelector(".ps-dialog");
+    const dialogTitle = root.querySelector("#ps-dialog-title");
     const pageTitle = root.querySelector(".ps-page-title");
     const status = root.querySelector(".ps-status");
     const summaryEl = root.querySelector(".ps-summary");
     const saveBtn = root.querySelector(".ps-save-btn");
 
+    dialogTitle.textContent = page.contentType === "youtube" ? "Video Summary" : "Page Summary";
     pageTitle.textContent = page.title;
     status.classList.add("hidden");
     summaryEl.textContent = summaryText;
@@ -313,16 +329,28 @@
     observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 
     fab.addEventListener("click", async () => {
-      const page = extractPageContent();
-      openDialogLoading(root, page);
+      const isYouTube = window.PageSummarizerYouTube?.isWatchPage();
+      openDialogLoading(root, {
+        title: isYouTube ? "YouTube video" : document.title,
+        contentType: isYouTube ? "youtube" : "page",
+      });
 
       try {
+        const page = await extractContent();
+        const status = root.querySelector(".ps-status");
+        const pageTitle = root.querySelector(".ps-page-title");
+        const dialogTitle = root.querySelector("#ps-dialog-title");
+
+        pageTitle.textContent = page.title;
+        dialogTitle.textContent = page.contentType === "youtube" ? "Video Summary" : "Page Summary";
+        status.textContent = "Generating summary with OpenAI…";
+
         const summary = await requestSummary(page);
         openDialog(root, page, summary);
       } catch (err) {
         showDialogError(
           root,
-          page,
+          { title: document.title, contentType: isYouTube ? "youtube" : "page" },
           err.message || "Could not generate a summary. Check your API key and model in the popup."
         );
       }
