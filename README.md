@@ -2,7 +2,7 @@
 
 A Microsoft Edge extension that summarizes webpage content with a floating button, saves summaries locally, and displays them in the popup.
 
-**Version:** 1.1.0
+**Version:** 1.1.1
 
 ## Features
 
