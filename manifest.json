@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Summarize webpage content with a floating button and save summaries for later",
   "permissions": ["storage", "activeTab"],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": ["<all_urls>", "https://api.openai.com/*"],
   "action": {
     "default_popup": "popup/index.html",
     "default_icon": {

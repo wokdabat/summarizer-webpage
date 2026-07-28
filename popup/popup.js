@@ -2,6 +2,56 @@ const summaryList = document.getElementById("summary-list");
 const emptyState = document.getElementById("empty-state");
 const summaryCount = document.getElementById("summary-count");
 const clearAllBtn = document.getElementById("clear-all");
+const apiKeyInput = document.getElementById("api-key");
+const modelSelect = document.getElementById("model-select");
+const saveSettingsBtn = document.getElementById("save-settings");
+const settingsStatus = document.getElementById("settings-status");
+const modelBadge = document.getElementById("model-badge");
+
+async function loadSettings() {
+  try {
+    const response = await chrome.runtime.sendMessage({ type: "GET_SETTINGS" });
+    if (!response?.success) return;
+
+    const { settings } = response;
+    apiKeyInput.value = settings.apiKey || "";
+    modelSelect.value = settings.model || "gpt-4o-mini";
+    modelBadge.textContent = modelSelect.value;
+  } catch {
+    // Ignore load errors in popup.
+  }
+}
+
+async function saveSettings() {
+  settingsStatus.textContent = "Saving…";
+  settingsStatus.className = "settings-status";
+
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: "SAVE_SETTINGS",
+      payload: {
+        apiKey: apiKeyInput.value.trim(),
+        model: modelSelect.value,
+      },
+    });
+
+    if (!response?.success) {
+      throw new Error(response?.error || "Could not save settings");
+    }
+
+    modelBadge.textContent = modelSelect.value;
+    settingsStatus.textContent = "Saved";
+    settingsStatus.className = "settings-status success";
+  } catch (err) {
+    settingsStatus.textContent = err.message || "Save failed";
+    settingsStatus.className = "settings-status error";
+  }
+
+  setTimeout(() => {
+    settingsStatus.textContent = "";
+    settingsStatus.className = "settings-status";
+  }, 2000);
+}
 
 async function loadSummaries() {
   try {
@@ -73,10 +123,13 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+saveSettingsBtn.addEventListener("click", saveSettings);
+
 clearAllBtn.addEventListener("click", async () => {
   if (!confirm("Delete all saved summaries?")) return;
   await chrome.runtime.sendMessage({ type: "CLEAR_SUMMARIES" });
   loadSummaries();
 });
 
+loadSettings();
 loadSummaries();

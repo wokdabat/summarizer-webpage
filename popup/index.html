@@ -23,6 +23,31 @@
       </div>
     </header>
 
+    <section class="settings-panel">
+      <label class="field-label" for="api-key">OpenAI API key</label>
+      <input
+        type="password"
+        id="api-key"
+        class="field-input"
+        placeholder="sk-..."
+        autocomplete="off"
+      />
+
+      <label class="field-label" for="model-select">Model</label>
+      <select id="model-select" class="field-select">
+        <option value="gpt-4o-mini" selected>gpt-4o-mini</option>
+        <option value="gpt-4o">gpt-4o</option>
+        <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+        <option value="gpt-4.1">gpt-4.1</option>
+        <option value="gpt-5.6">gpt-5.6</option>
+      </select>
+
+      <div class="settings-actions">
+        <button class="btn-save-settings" id="save-settings">Save settings</button>
+        <span class="settings-status" id="settings-status"></span>
+      </div>
+    </section>
+
     <div class="popup-toolbar">
       <span class="count" id="summary-count">0 summaries</span>
       <button class="btn-clear" id="clear-all" title="Clear all summaries">Clear all</button>
@@ -40,7 +65,7 @@
 
     <footer class="popup-footer">
       <span>v1.0.0</span>
-      <span class="badge">Test mode</span>
+      <span class="badge" id="model-badge">gpt-4o-mini</span>
     </footer>
   </div>
 

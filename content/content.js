@@ -29,25 +29,22 @@
     return { title, text, excerpt, url: location.href };
   }
 
-  function generateMockSummary(page) {
-    const wordCount = page.text.split(/\s+/).filter(Boolean).length;
-    const paragraphs = page.text
-      .split(/(?<=[.!?])\s+/)
-      .filter((s) => s.length > 40)
-      .slice(0, 3);
 
-    const preview =
-      paragraphs.length > 0
-        ? paragraphs.join(" ")
-        : page.text.slice(0, 400);
+  async function requestSummary(page) {
+    const response = await chrome.runtime.sendMessage({
+      type: "SUMMARIZE_PAGE",
+      payload: {
+        title: page.title,
+        url: page.url,
+        text: page.text,
+      },
+    });
 
-    return (
-      `[Test mode — OpenAI integration coming soon]\n\n` +
-      `Page: ${page.title}\n` +
-      `URL: ${page.url}\n` +
-      `Words extracted: ~${wordCount}\n\n` +
-      `Content preview:\n${preview}`
-    );
+    if (!response?.success) {
+      throw new Error(response?.error || "Summary request failed");
+    }
+
+    return response.summary;
   }
 
   function isExtensionElement(el) {
@@ -216,6 +213,28 @@
     return root;
   }
 
+  function openDialogLoading(root, page) {
+    const overlay = root.querySelector(".ps-overlay");
+    const dialog = root.querySelector(".ps-dialog");
+    const pageTitle = root.querySelector(".ps-page-title");
+    const status = root.querySelector(".ps-status");
+    const summaryEl = root.querySelector(".ps-summary");
+    const saveBtn = root.querySelector(".ps-save-btn");
+
+    pageTitle.textContent = page.title;
+    status.textContent = "Generating summary with OpenAI…";
+    status.classList.remove("hidden");
+    summaryEl.classList.add("hidden");
+    summaryEl.textContent = "";
+    summaryEl.classList.remove("ps-error");
+    saveBtn.disabled = true;
+    delete saveBtn.dataset.page;
+
+    overlay.classList.add("ps-visible");
+    overlay.setAttribute("aria-hidden", "false");
+    requestAnimationFrame(() => dialog.classList.add("ps-visible"));
+  }
+
   function openDialog(root, page, summaryText) {
     const overlay = root.querySelector(".ps-overlay");
     const dialog = root.querySelector(".ps-dialog");
@@ -227,9 +246,30 @@
     pageTitle.textContent = page.title;
     status.classList.add("hidden");
     summaryEl.textContent = summaryText;
-    summaryEl.classList.remove("hidden");
+    summaryEl.classList.remove("hidden", "ps-error");
     saveBtn.disabled = false;
     saveBtn.dataset.page = JSON.stringify({ ...page, summary: summaryText });
+
+    overlay.classList.add("ps-visible");
+    overlay.setAttribute("aria-hidden", "false");
+    requestAnimationFrame(() => dialog.classList.add("ps-visible"));
+  }
+
+  function showDialogError(root, page, message) {
+    const overlay = root.querySelector(".ps-overlay");
+    const dialog = root.querySelector(".ps-dialog");
+    const pageTitle = root.querySelector(".ps-page-title");
+    const status = root.querySelector(".ps-status");
+    const summaryEl = root.querySelector(".ps-summary");
+    const saveBtn = root.querySelector(".ps-save-btn");
+
+    pageTitle.textContent = page.title;
+    status.classList.add("hidden");
+    summaryEl.textContent = message;
+    summaryEl.classList.remove("hidden");
+    summaryEl.classList.add("ps-error");
+    saveBtn.disabled = true;
+    delete saveBtn.dataset.page;
 
     overlay.classList.add("ps-visible");
     overlay.setAttribute("aria-hidden", "false");
@@ -272,10 +312,20 @@
     const observer = new MutationObserver(scheduleReposition);
     observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 
-    fab.addEventListener("click", () => {
+    fab.addEventListener("click", async () => {
       const page = extractPageContent();
-      const summary = generateMockSummary(page);
-      openDialog(root, page, summary);
+      openDialogLoading(root, page);
+
+      try {
+        const summary = await requestSummary(page);
+        openDialog(root, page, summary);
+      } catch (err) {
+        showDialogError(
+          root,
+          page,
+          err.message || "Could not generate a summary. Check your API key and model in the popup."
+        );
+      }
     });
 
     overlay.addEventListener("click", (e) => {

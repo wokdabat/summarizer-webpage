@@ -185,6 +185,10 @@
   word-break: break-word;
 }
 
+.ps-summary.ps-error {
+  color: #dc2626;
+}
+
 .ps-dialog-footer {
   display: flex;
   justify-content: flex-end;
