@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Page Summarizer</title>
+  <title>Page and YouTube Summarizer</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
@@ -18,13 +18,13 @@
         </svg>
       </div>
       <div>
-        <h1>Page Summarizer</h1>
+        <h1>Page and YouTube Summarizer</h1>
         <p class="subtitle">Your saved summaries</p>
       </div>
     </header>
 
     <section class="settings-panel">
-      <label class="field-label" for="model-select">Model</label>
+      <label class="field-label" for="model-select">Model Selection</label>
       <select id="model-select" class="field-select">
         <option value="gpt-4o-mini" selected>gpt-4o-mini</option>
         <option value="gpt-4o">gpt-4o</option>
@@ -58,6 +58,15 @@
       <span>v2.1.0</span>
       <span class="badge" id="model-badge">gpt-4o-mini</span>
     </footer>
+
+    <div class="download-notice hidden" id="download-notice" role="dialog" aria-labelledby="download-notice-title">
+      <div class="download-notice-card">
+        <p class="download-notice-title" id="download-notice-title">PDF downloaded</p>
+        <p class="download-notice-file" id="download-notice-file"></p>
+        <p class="download-notice-hint" id="download-notice-hint">Your PDF was saved.</p>
+        <button class="download-notice-close" id="download-notice-close" type="button">Close</button>
+      </div>
+    </div>
   </div>
 
   <script src="../lib/jspdf.umd.min.js"></script>

@@ -1,7 +1,7 @@
 {
   "name": "page-summarizer",
   "version": "2.1.0",
-  "description": "Summarize webpage content with a floating button and save summaries for later",
+  "description": "Summarize webpages and YouTube videos with a floating button and save summaries for later",
   "private": true,
   "scripts": {
     "build": "node scripts/build.mjs",

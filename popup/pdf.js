@@ -22,7 +22,7 @@ function addPdfLines(doc, lines, x, startY, lineHeight, bottomMargin) {
   return y;
 }
 
-function downloadSummaryPdf(item) {
+function buildSummaryPdf(item) {
   if (!window.jspdf?.jsPDF) {
     throw new Error("PDF library failed to load. Reload the extension.");
   }
@@ -57,7 +57,41 @@ function downloadSummaryPdf(item) {
   const summaryLines = doc.splitTextToSize(item.summary || "", maxWidth);
   addPdfLines(doc, summaryLines, margin, y, 6, 20);
 
-  doc.save(`${sanitizeFilename(item.title)}.pdf`);
+  return doc;
+}
+
+async function savePdfWithPicker(doc, filename) {
+  const handle = await window.showSaveFilePicker({
+    suggestedName: filename,
+    types: [
+      {
+        description: "PDF document",
+        accept: { "application/pdf": [".pdf"] },
+      },
+    ],
+  });
+  const writable = await handle.createWritable();
+  await writable.write(doc.output("blob"));
+  await writable.close();
+  return { filename, usedPicker: true };
+}
+
+async function downloadSummaryPdf(item) {
+  const doc = buildSummaryPdf(item);
+  const filename = `${sanitizeFilename(item.title)}.pdf`;
+
+  if (typeof window.showSaveFilePicker === "function") {
+    try {
+      return await savePdfWithPicker(doc, filename);
+    } catch (err) {
+      if (err?.name === "AbortError") {
+        throw new Error("Save cancelled");
+      }
+    }
+  }
+
+  doc.save(filename);
+  return { filename, usedPicker: false };
 }
 
 window.PageSummarizerPdf = {

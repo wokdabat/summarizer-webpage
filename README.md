@@ -1,4 +1,4 @@
-# Page Summarizer
+# Page and YouTube Summarizer
 
 A Microsoft Edge extension that summarizes webpage content with a floating button, saves summaries locally, and displays them in the popup.
 

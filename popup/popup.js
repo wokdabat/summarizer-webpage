@@ -6,6 +6,24 @@ const modelSelect = document.getElementById("model-select");
 const saveSettingsBtn = document.getElementById("save-settings");
 const settingsStatus = document.getElementById("settings-status");
 const modelBadge = document.getElementById("model-badge");
+const downloadNotice = document.getElementById("download-notice");
+const downloadNoticeFile = document.getElementById("download-notice-file");
+const downloadNoticeClose = document.getElementById("download-notice-close");
+const downloadNoticeHint = document.getElementById("download-notice-hint");
+
+function showDownloadNotice(filename, usedPicker) {
+  downloadNoticeFile.textContent = filename;
+  downloadNoticeHint.textContent = usedPicker
+    ? "Your PDF was saved to the location you chose."
+    : "Check your Downloads folder.";
+  downloadNotice.classList.remove("hidden");
+}
+
+function hideDownloadNotice() {
+  downloadNotice.classList.add("hidden");
+}
+
+downloadNoticeClose.addEventListener("click", hideDownloadNotice);
 
 async function loadSettings() {
   try {
@@ -119,11 +137,13 @@ function renderSummaries(summaries) {
       loadSummaries();
     });
 
-    card.querySelector(".card-download").addEventListener("click", (e) => {
+    card.querySelector(".card-download").addEventListener("click", async (e) => {
       e.stopPropagation();
       try {
-        window.PageSummarizerPdf.downloadSummaryPdf(item);
+        const { filename, usedPicker } = await window.PageSummarizerPdf.downloadSummaryPdf(item);
+        showDownloadNotice(filename, usedPicker);
       } catch (err) {
+        if (err.message === "Save cancelled") return;
         alert(err.message || "Could not download PDF.");
       }
     });
