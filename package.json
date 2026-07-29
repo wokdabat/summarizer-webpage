@@ -1,6 +1,6 @@
 {
   "name": "page-summarizer",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Summarize webpage content with a floating button and save summaries for later",
   "private": true,
   "scripts": {
@@ -10,5 +10,8 @@
     "version:minor": "node scripts/version.mjs minor",
     "version:major": "node scripts/version.mjs major",
     "version:set": "node scripts/version.mjs"
+  },
+  "devDependencies": {
+    "jspdf": "^4.2.1"
   }
 }

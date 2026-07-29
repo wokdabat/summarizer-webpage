@@ -1,4 +1,4 @@
-import { cpSync, mkdirSync, rmSync } from "fs";
+import { cpSync, existsSync, mkdirSync, rmSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
@@ -14,13 +14,23 @@ const copyItems = [
   "content",
   "popup",
   "icons",
+  "lib",
 ];
+
+const optionalItems = ["config.local.json"];
 
 rmSync(join(root, "dist"), { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
 for (const item of copyItems) {
   cpSync(join(root, item), join(out, item), { recursive: true });
+}
+
+for (const item of optionalItems) {
+  const source = join(root, item);
+  if (existsSync(source)) {
+    cpSync(source, join(out, item));
+  }
 }
 
 console.log("Build complete: dist/page-summarizer");

@@ -2,14 +2,14 @@
 
 A Microsoft Edge extension that summarizes webpage content with a floating button, saves summaries locally, and displays them in the popup.
 
-**Version:** 2.0.0
+**Version:** 2.1.0
 
 ## Features
 
 - Floating summarize button on every webpage
 - Dialog with blurred backdrop and fade-in animation
 - Click outside or press Escape to close
-- OpenAI-powered summaries (configure API key and model in popup)
+- OpenAI-powered summaries (API key in local config file, model in popup)
 - Saves summaries to local storage
 - Popup lists all saved summaries
 
@@ -35,10 +35,24 @@ After bumping, reload the extension in `edge://extensions`.
 4. Select this folder: `summarizer`
 5. Visit any website — the purple floating button appears bottom-right
 
+## Setup
+
+1. Create `config.local.json` in the project root:
+
+```json
+{
+  "apiKey": "sk-your-key-here"
+}
+```
+
+2. Reload the extension in `edge://extensions`
+
+`config.local.json` is gitignored and never pushed to GitHub.
+
 ## Usage
 
-1. Open the popup and save your OpenAI API key and model
-2. Click the floating button on a page
+1. Open the popup and choose your model (default: gpt-4o-mini)
+2. Click the floating button on a page or YouTube video
 3. Review the AI summary in the dialog
 4. Click **Save Summary** to store it
 5. Open the popup again to view saved summaries
@@ -47,6 +61,7 @@ After bumping, reload the extension in `edge://extensions`.
 
 ```
 summarizer/
+├── config.local.json          # your API key (create locally, not committed)
 ├── manifest.json
 ├── package.json
 ├── background/service-worker.js

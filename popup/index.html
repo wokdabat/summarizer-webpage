@@ -24,15 +24,6 @@
     </header>
 
     <section class="settings-panel">
-      <label class="field-label" for="api-key">OpenAI API key</label>
-      <input
-        type="password"
-        id="api-key"
-        class="field-input"
-        placeholder="sk-..."
-        autocomplete="off"
-      />
-
       <label class="field-label" for="model-select">Model</label>
       <select id="model-select" class="field-select">
         <option value="gpt-4o-mini" selected>gpt-4o-mini</option>
@@ -64,11 +55,13 @@
     </main>
 
     <footer class="popup-footer">
-      <span>v2.0.0</span>
+      <span>v2.1.0</span>
       <span class="badge" id="model-badge">gpt-4o-mini</span>
     </footer>
   </div>
 
+  <script src="../lib/jspdf.umd.min.js"></script>
+  <script src="pdf.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

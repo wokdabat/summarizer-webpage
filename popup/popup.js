@@ -2,7 +2,6 @@ const summaryList = document.getElementById("summary-list");
 const emptyState = document.getElementById("empty-state");
 const summaryCount = document.getElementById("summary-count");
 const clearAllBtn = document.getElementById("clear-all");
-const apiKeyInput = document.getElementById("api-key");
 const modelSelect = document.getElementById("model-select");
 const saveSettingsBtn = document.getElementById("save-settings");
 const settingsStatus = document.getElementById("settings-status");
@@ -14,7 +13,6 @@ async function loadSettings() {
     if (!response?.success) return;
 
     const { settings } = response;
-    apiKeyInput.value = settings.apiKey || "";
     modelSelect.value = settings.model || "gpt-4o-mini";
     modelBadge.textContent = modelSelect.value;
   } catch {
@@ -30,7 +28,6 @@ async function saveSettings() {
     const response = await chrome.runtime.sendMessage({
       type: "SAVE_SETTINGS",
       payload: {
-        apiKey: apiKeyInput.value.trim(),
         model: modelSelect.value,
       },
     });
@@ -99,11 +96,20 @@ function renderSummaries(summaries) {
       </div>
       <p class="card-excerpt">${escapeHtml(item.excerpt || "")}</p>
       <div class="card-full">${escapeHtml(item.summary || "")}</div>
-      <a class="card-link" href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Open page</a>
+      <div class="card-actions">
+        <button class="card-download" type="button" title="Download PDF">Download PDF</button>
+        <a class="card-link" href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Open page</a>
+      </div>
     `;
 
     card.addEventListener("click", (e) => {
-      if (e.target.closest(".card-delete") || e.target.closest(".card-link")) return;
+      if (
+        e.target.closest(".card-delete") ||
+        e.target.closest(".card-link") ||
+        e.target.closest(".card-download")
+      ) {
+        return;
+      }
       card.classList.toggle("expanded");
     });
 
@@ -111,6 +117,15 @@ function renderSummaries(summaries) {
       e.stopPropagation();
       await chrome.runtime.sendMessage({ type: "DELETE_SUMMARY", id: item.id });
       loadSummaries();
+    });
+
+    card.querySelector(".card-download").addEventListener("click", (e) => {
+      e.stopPropagation();
+      try {
+        window.PageSummarizerPdf.downloadSummaryPdf(item);
+      } catch (err) {
+        alert(err.message || "Could not download PDF.");
+      }
     });
 
     summaryList.appendChild(card);

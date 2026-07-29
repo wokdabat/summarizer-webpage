@@ -4,9 +4,10 @@ const MAX_SUMMARIES = 50;
 const DEFAULT_MODEL = "gpt-4o-mini";
 
 const DEFAULT_SETTINGS = {
-  apiKey: "",
   model: DEFAULT_MODEL,
 };
+
+let cachedLocalConfig;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "SAVE_SUMMARY") {
@@ -76,9 +77,32 @@ async function getSettings() {
   return { ...DEFAULT_SETTINGS, ...result[SETTINGS_KEY] };
 }
 
+async function getLocalConfig() {
+  if (cachedLocalConfig !== undefined) {
+    return cachedLocalConfig;
+  }
+
+  try {
+    const response = await fetch(chrome.runtime.getURL("config.local.json"));
+    if (response.ok) {
+      cachedLocalConfig = await response.json();
+      return cachedLocalConfig;
+    }
+  } catch {
+    // Fall through to empty config.
+  }
+
+  cachedLocalConfig = {};
+  return cachedLocalConfig;
+}
+
+async function getApiKey() {
+  const config = await getLocalConfig();
+  return (config.apiKey || "").trim();
+}
+
 async function saveSettings(payload) {
   const settings = {
-    apiKey: (payload.apiKey || "").trim(),
     model: payload.model || DEFAULT_MODEL,
   };
 
@@ -88,9 +112,12 @@ async function saveSettings(payload) {
 
 async function summarizePage(payload) {
   const settings = await getSettings();
+  const apiKey = await getApiKey();
 
-  if (!settings.apiKey) {
-    throw new Error("Add your OpenAI API key in the extension popup settings.");
+  if (!apiKey) {
+    throw new Error(
+      "Add your OpenAI API key to config.local.json in the extension folder, then reload the extension."
+    );
   }
 
   const prompt =
@@ -111,7 +138,7 @@ async function summarizePage(payload) {
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${settings.apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
