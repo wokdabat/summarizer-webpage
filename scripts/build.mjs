@@ -30,6 +30,11 @@ for (const item of optionalItems) {
   const source = join(root, item);
   if (existsSync(source)) {
     cpSync(source, join(out, item));
+    if (process.argv.includes("--zip") && item === "config.local.json") {
+      console.warn(
+        "Warning: config.local.json was included in the package. Remove it before uploading to the Edge Add-ons store."
+      );
+    }
   }
 }
 

@@ -13,7 +13,7 @@ A Microsoft Edge extension (Manifest V3) that summarizes webpages and YouTube vi
 - **Transcript fallbacks for YouTube** — Tries multiple strategies (Innertube API, caption tracks, in-page fetch, DOM transcript panel) so summaries work on more videos
 - **OpenAI-powered** — Uses the OpenAI Responses API with prompts tailored for pages vs. videos
 - **Model selection** — Choose from `gpt-4o-mini`, `gpt-4o`, `gpt-4.1-mini`, `gpt-4.1`, or `gpt-5.6` in the popup (default: `gpt-4o-mini`)
-- **Local API key** — OpenAI key stored in `config.local.json` on your machine (never committed to git)
+- **Bring your own API key** — Each user enters their own OpenAI key in the popup; it stays in local extension storage on their device
 
 ### Floating button & dialog
 
@@ -31,7 +31,7 @@ A Microsoft Edge extension (Manifest V3) that summarizes webpages and YouTube vi
 - **Per-summary actions** — Delete individual summaries, open the original page, or save as PDF
 - **Clear all** — Remove every saved summary at once (with confirmation)
 - **Empty state** — Helpful message when you have no summaries yet
-- **Settings panel** — Model selection with save confirmation and active-model badge in the footer
+- **Settings panel** — API key and model selection with save confirmation and active-model badge in the footer
 
 ### PDF export
 
@@ -68,7 +68,16 @@ After bumping, reload the extension in `edge://extensions`.
 
 ## Setup
 
-1. Create `config.local.json` in the project root:
+1. Install the extension from the Edge Add-ons store, or load it unpacked from this repo (see below)
+2. Open the extension popup
+3. Paste your [OpenAI API key](https://platform.openai.com/api-keys) into **OpenAI API Key**
+4. Choose a model and click **Save settings**
+
+Your key is stored in `chrome.storage.local` on your device. It is used only to call OpenAI when you summarize a page or video. It is never sent anywhere else.
+
+### Optional: local dev key file
+
+For development, you can still use `config.local.json` in the project root (gitignored). If no key is saved in the popup, the extension falls back to this file:
 
 ```json
 {
@@ -76,13 +85,11 @@ After bumping, reload the extension in `edge://extensions`.
 }
 ```
 
-2. Reload the extension in `edge://extensions`
-
-`config.local.json` is gitignored and never pushed to GitHub.
+**Do not include `config.local.json` in builds or packages you upload to the Edge Add-ons store.**
 
 ## Usage
 
-1. Open the popup and choose your model, then click **Save settings**
+1. Open the popup, add your OpenAI API key if you have not already, choose your model, then click **Save settings**
 2. Click the floating button on a webpage or YouTube video
 3. Review the AI summary in the dialog
 4. Click **Save Summary** to store it locally
@@ -93,7 +100,7 @@ After bumping, reload the extension in `edge://extensions`.
 
 ```
 summarizer/
-├── config.local.json          # your API key (create locally, not committed)
+├── config.local.json          # optional dev API key (not committed, not for store builds)
 ├── manifest.json
 ├── package.json
 ├── background/service-worker.js
@@ -113,7 +120,7 @@ summarizer/
 
 ```bash
 npm run build           # copy extension to dist/page-summarizer
-npm run package         # build and zip for distribution
+npm run package         # build and zip for distribution (omit config.local.json)
 npm run version:patch   # bump patch version
 npm run version:minor   # bump minor version
 npm run version:major   # bump major version

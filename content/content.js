@@ -351,7 +351,7 @@
         showDialogError(
           root,
           { title: document.title, contentType: isYouTube ? "youtube" : "page" },
-          err.message || "Could not generate a summary. Check config.local.json and your model in the popup."
+          err.message || "Could not generate a summary. Add your OpenAI API key in the extension popup."
         );
       }
     });

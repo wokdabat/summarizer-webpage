@@ -5,6 +5,7 @@ const DEFAULT_MODEL = "gpt-4o-mini";
 
 const DEFAULT_SETTINGS = {
   model: DEFAULT_MODEL,
+  apiKey: "",
 };
 
 let cachedLocalConfig;
@@ -72,9 +73,17 @@ async function getSummaries() {
   return result[STORAGE_KEY] || [];
 }
 
-async function getSettings() {
+async function getSettingsRaw() {
   const result = await chrome.storage.local.get(SETTINGS_KEY);
   return { ...DEFAULT_SETTINGS, ...result[SETTINGS_KEY] };
+}
+
+async function getSettings() {
+  const settings = await getSettingsRaw();
+  return {
+    model: settings.model,
+    hasApiKey: Boolean(settings.apiKey?.trim()),
+  };
 }
 
 async function getLocalConfig() {
@@ -97,17 +106,29 @@ async function getLocalConfig() {
 }
 
 async function getApiKey() {
+  const settings = await getSettingsRaw();
+  const storedKey = (settings.apiKey || "").trim();
+  if (storedKey) return storedKey;
+
   const config = await getLocalConfig();
   return (config.apiKey || "").trim();
 }
 
 async function saveSettings(payload) {
+  const current = await getSettingsRaw();
   const settings = {
     model: payload.model || DEFAULT_MODEL,
+    apiKey: current.apiKey || "",
   };
 
+  if (payload.removeApiKey) {
+    settings.apiKey = "";
+  } else if (payload.apiKey?.trim()) {
+    settings.apiKey = payload.apiKey.trim();
+  }
+
   await chrome.storage.local.set({ [SETTINGS_KEY]: settings });
-  return settings;
+  return getSettings();
 }
 
 async function summarizePage(payload) {
@@ -116,7 +137,7 @@ async function summarizePage(payload) {
 
   if (!apiKey) {
     throw new Error(
-      "Add your OpenAI API key to config.local.json in the extension folder, then reload the extension."
+      "Add your OpenAI API key in the extension popup and click Save settings, then try again."
     );
   }
 

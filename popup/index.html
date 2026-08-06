@@ -24,6 +24,30 @@
     </header>
 
     <section class="settings-panel">
+      <div class="field-group">
+        <label class="field-label" for="api-key-input">OpenAI API Key</label>
+        <div class="field-input-row">
+          <input
+            type="password"
+            id="api-key-input"
+            class="field-input"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="sk-..."
+          />
+          <button type="button" class="btn-toggle-key" id="toggle-api-key" title="Show key">Show</button>
+        </div>
+        <p class="field-hint">
+          Stored locally on your device. Used only for OpenAI requests.
+          <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">Get a key</a>
+        </p>
+        <div class="api-key-actions">
+          <span class="api-key-status hidden" id="api-key-status">Key saved</span>
+          <button type="button" class="btn-remove-key hidden" id="remove-api-key">Remove key</button>
+        </div>
+      </div>
+
+      <div class="field-group">
       <label class="field-label" for="model-select">Model Selection</label>
       <select id="model-select" class="field-select">
         <option value="gpt-4o-mini" selected>gpt-4o-mini</option>
@@ -32,6 +56,7 @@
         <option value="gpt-4.1">gpt-4.1</option>
         <option value="gpt-5.6">gpt-5.6</option>
       </select>
+      </div>
 
       <div class="settings-actions">
         <button class="btn-save-settings" id="save-settings">Save settings</button>

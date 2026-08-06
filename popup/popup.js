@@ -2,10 +2,16 @@ const summaryList = document.getElementById("summary-list");
 const emptyState = document.getElementById("empty-state");
 const summaryCount = document.getElementById("summary-count");
 const clearAllBtn = document.getElementById("clear-all");
+const apiKeyInput = document.getElementById("api-key-input");
+const toggleApiKeyBtn = document.getElementById("toggle-api-key");
+const apiKeyStatus = document.getElementById("api-key-status");
+const removeApiKeyBtn = document.getElementById("remove-api-key");
 const modelSelect = document.getElementById("model-select");
 const saveSettingsBtn = document.getElementById("save-settings");
 const settingsStatus = document.getElementById("settings-status");
 const modelBadge = document.getElementById("model-badge");
+
+let savedApiKey = false;
 const downloadNotice = document.getElementById("download-notice");
 const downloadNoticeFile = document.getElementById("download-notice-file");
 const downloadNoticeClose = document.getElementById("download-notice-close");
@@ -25,6 +31,26 @@ function hideDownloadNotice() {
 
 downloadNoticeClose.addEventListener("click", hideDownloadNotice);
 
+function updateApiKeyUi() {
+  if (savedApiKey) {
+    apiKeyInput.value = "";
+    apiKeyInput.placeholder = "Key saved — paste a new key to replace";
+    apiKeyStatus.classList.remove("hidden");
+    removeApiKeyBtn.classList.remove("hidden");
+  } else {
+    apiKeyInput.placeholder = "sk-...";
+    apiKeyStatus.classList.add("hidden");
+    removeApiKeyBtn.classList.add("hidden");
+  }
+}
+
+toggleApiKeyBtn.addEventListener("click", () => {
+  const isPassword = apiKeyInput.type === "password";
+  apiKeyInput.type = isPassword ? "text" : "password";
+  toggleApiKeyBtn.textContent = isPassword ? "Hide" : "Show";
+  toggleApiKeyBtn.title = isPassword ? "Hide key" : "Show key";
+});
+
 async function loadSettings() {
   try {
     const response = await chrome.runtime.sendMessage({ type: "GET_SETTINGS" });
@@ -33,21 +59,34 @@ async function loadSettings() {
     const { settings } = response;
     modelSelect.value = settings.model || "gpt-4o-mini";
     modelBadge.textContent = modelSelect.value;
+    savedApiKey = Boolean(settings.hasApiKey);
+    updateApiKeyUi();
   } catch {
     // Ignore load errors in popup.
   }
 }
 
-async function saveSettings() {
+async function saveSettings({ removeApiKey = false } = {}) {
   settingsStatus.textContent = "Saving…";
   settingsStatus.className = "settings-status";
 
   try {
+    const payload = {
+      model: modelSelect.value,
+    };
+
+    const apiKey = apiKeyInput.value.trim();
+    if (removeApiKey) {
+      payload.removeApiKey = true;
+    } else if (apiKey) {
+      payload.apiKey = apiKey;
+    } else if (!savedApiKey) {
+      throw new Error("Enter your OpenAI API key");
+    }
+
     const response = await chrome.runtime.sendMessage({
       type: "SAVE_SETTINGS",
-      payload: {
-        model: modelSelect.value,
-      },
+      payload,
     });
 
     if (!response?.success) {
@@ -55,7 +94,10 @@ async function saveSettings() {
     }
 
     modelBadge.textContent = modelSelect.value;
-    settingsStatus.textContent = "Saved";
+    savedApiKey = Boolean(response.settings?.hasApiKey);
+    apiKeyInput.value = "";
+    updateApiKeyUi();
+    settingsStatus.textContent = removeApiKey ? "Key removed" : "Saved";
     settingsStatus.className = "settings-status success";
   } catch (err) {
     settingsStatus.textContent = err.message || "Save failed";
@@ -158,7 +200,12 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-saveSettingsBtn.addEventListener("click", saveSettings);
+saveSettingsBtn.addEventListener("click", () => saveSettings());
+
+removeApiKeyBtn.addEventListener("click", async () => {
+  if (!confirm("Remove your saved OpenAI API key from this extension?")) return;
+  await saveSettings({ removeApiKey: true });
+});
 
 clearAllBtn.addEventListener("click", async () => {
   if (!confirm("Delete all saved summaries?")) return;

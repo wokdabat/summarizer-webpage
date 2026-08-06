@@ -24,7 +24,7 @@
 
 html, body {
   width: 380px;
-  height: 560px;
+  height: 620px;
   overflow: hidden;
   color-scheme: dark;
 }
@@ -39,7 +39,7 @@ body {
   display: flex;
   flex-direction: column;
   width: 380px;
-  height: 560px;
+  height: 620px;
   position: relative;
   background:
     radial-gradient(ellipse 120% 80% at 100% -20%, rgba(129, 140, 248, 0.12), transparent 50%),
@@ -99,6 +99,10 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+.field-group + .field-group {
+  margin-top: 12px;
+}
+
 .field-label {
   display: block;
   font-size: 10px;
@@ -109,6 +113,12 @@ body {
   letter-spacing: 0.06em;
 }
 
+.field-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.field-input,
 .field-select {
   width: 100%;
   padding: 9px 12px;
@@ -119,16 +129,90 @@ body {
   background: var(--bg-card);
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field-input {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+.field-select {
   cursor: pointer;
 }
 
+.field-input:hover,
 .field-select:hover {
   border-color: rgba(255, 255, 255, 0.14);
 }
 
+.field-input:focus,
 .field-select:focus {
   border-color: var(--border-accent);
   box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.field-hint {
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+
+.field-hint a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.field-hint a:hover {
+  text-decoration: underline;
+}
+
+.btn-toggle-key {
+  flex-shrink: 0;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-toggle-key:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--text);
+}
+
+.api-key-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.api-key-status {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--success);
+}
+
+.btn-remove-key {
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 10px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.btn-remove-key:hover {
+  color: var(--danger);
 }
 
 .settings-actions {
