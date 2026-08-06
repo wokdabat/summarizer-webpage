@@ -4,7 +4,7 @@ A Microsoft Edge extension (Manifest V3) that summarizes webpages and YouTube vi
 
 **Version:** 2.1.0
 
-## Features
+## Features/Cursor
 
 ### Summarization
 
