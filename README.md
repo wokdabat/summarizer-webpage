@@ -2,9 +2,9 @@
 
 A Microsoft Edge extension (Manifest V3) that summarizes webpages and YouTube videos with a floating button, saves summaries locally, and lets you review or export them from the popup.
 
-**Version:** 2.1.0
+**Version:** 2.1.2
 
-## Features/Cursor
+## Features
 
 ### Summarization
 

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Page and YouTube Summarizer",
-  "version": "2.1.0",
+  "version": "2.1.2",
   "description": "Summarize webpages and YouTube videos with a floating button and save summaries for later",
   "permissions": [
     "storage",
