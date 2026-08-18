@@ -4,6 +4,10 @@
 
   const ROOT_ID = "page-summarizer-root";
   const FAB_POSITIONS = ["", "ps-pos-bl", "ps-pos-br-high", "ps-pos-bl-high", "ps-pos-tr", "ps-pos-tl"];
+  const FAB_STORAGE_KEY = "fabPosition";
+  const FAB_SIZE = 56;
+  const FAB_MARGIN = 8;
+  const DRAG_THRESHOLD = 6;
   const MIN_BLOCKER_AREA = 900;
 
   function extractPageContent() {
@@ -105,10 +109,124 @@
   }
 
   function applyFabPosition(fab, positionClass) {
+    fab.classList.remove("ps-fab-custom");
+    fab.style.left = "";
+    fab.style.top = "";
+    fab.style.right = "";
+    fab.style.bottom = "";
     FAB_POSITIONS.forEach((cls) => {
       if (cls) fab.classList.remove(cls);
     });
     if (positionClass) fab.classList.add(positionClass);
+  }
+
+  function clampFabCoords(left, top) {
+    const maxLeft = Math.max(FAB_MARGIN, window.innerWidth - FAB_SIZE - FAB_MARGIN);
+    const maxTop = Math.max(FAB_MARGIN, window.innerHeight - FAB_SIZE - FAB_MARGIN);
+    return {
+      left: Math.min(Math.max(FAB_MARGIN, left), maxLeft),
+      top: Math.min(Math.max(FAB_MARGIN, top), maxTop),
+    };
+  }
+
+  function applyCustomFabPosition(fab, left, top) {
+    const coords = clampFabCoords(left, top);
+    FAB_POSITIONS.forEach((cls) => {
+      if (cls) fab.classList.remove(cls);
+    });
+    fab.classList.add("ps-fab-custom");
+    fab.style.left = `${coords.left}px`;
+    fab.style.top = `${coords.top}px`;
+    fab.style.right = "auto";
+    fab.style.bottom = "auto";
+    return coords;
+  }
+
+  async function loadFabPosition() {
+    try {
+      const result = await chrome.storage.local.get(FAB_STORAGE_KEY);
+      return result[FAB_STORAGE_KEY] || { mode: "auto" };
+    } catch {
+      return { mode: "auto" };
+    }
+  }
+
+  async function saveFabPosition(position) {
+    try {
+      await chrome.storage.local.set({ [FAB_STORAGE_KEY]: position });
+    } catch {
+      // Ignore storage errors.
+    }
+  }
+
+  function setupFabDrag(fab, setMode) {
+    let pointerStart = null;
+    let dragOffset = null;
+    let didDrag = false;
+    let suppressNextClick = false;
+
+    fab.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      const rect = fab.getBoundingClientRect();
+      pointerStart = { x: e.clientX, y: e.clientY };
+      dragOffset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      didDrag = false;
+      fab.setPointerCapture(e.pointerId);
+    });
+
+    fab.addEventListener("pointermove", (e) => {
+      if (!pointerStart || !dragOffset) return;
+
+      const dx = e.clientX - pointerStart.x;
+      const dy = e.clientY - pointerStart.y;
+      if (!didDrag && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+
+      didDrag = true;
+      fab.classList.add("ps-fab-dragging");
+      applyCustomFabPosition(fab, e.clientX - dragOffset.x, e.clientY - dragOffset.y);
+    });
+
+    fab.addEventListener("pointerup", async (e) => {
+      if (!pointerStart) return;
+
+      fab.releasePointerCapture(e.pointerId);
+      fab.classList.remove("ps-fab-dragging");
+
+      if (didDrag) {
+        const left = parseFloat(fab.style.left) || FAB_MARGIN;
+        const top = parseFloat(fab.style.top) || FAB_MARGIN;
+        const coords = applyCustomFabPosition(fab, left, top);
+        setMode("custom");
+        await saveFabPosition({ mode: "custom", left: coords.left, top: coords.top });
+        suppressNextClick = true;
+      }
+
+      pointerStart = null;
+      dragOffset = null;
+      didDrag = false;
+    });
+
+    fab.addEventListener("pointercancel", () => {
+      pointerStart = null;
+      dragOffset = null;
+      didDrag = false;
+      fab.classList.remove("ps-fab-dragging");
+    });
+
+    fab.addEventListener("click", (e) => {
+      if (suppressNextClick) {
+        suppressNextClick = false;
+        e.stopImmediatePropagation();
+      }
+    }, true);
+
+    fab.addEventListener("dblclick", async (e) => {
+      e.preventDefault();
+      setMode("auto");
+      await saveFabPosition({ mode: "auto" });
+      applyFabPosition(fab, "");
+      repositionFab(fab);
+    });
   }
 
   function measureFabOverlap(fab, positionClass) {
@@ -189,7 +307,7 @@
     root.id = ROOT_ID;
 
     root.innerHTML = `
-      <button class="ps-fab" aria-label="Summarize this page" title="Summarize page">
+      <button class="ps-fab" aria-label="Summarize this page. Drag to move." title="Click to summarize. Drag to move. Double-click to reset position.">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
           <polyline points="14 2 14 8 20 8"/>
@@ -312,23 +430,60 @@
     }, 300);
   }
 
-  function init() {
+  async function init() {
     const root = createUI();
     const fab = root.querySelector(".ps-fab");
     const overlay = root.querySelector(".ps-overlay");
     const dialog = root.querySelector(".ps-dialog");
     const saveBtn = root.querySelector(".ps-save-btn");
 
-    const scheduleReposition = debounce(() => repositionFab(fab), 150);
+    let fabPositionMode = "auto";
+    const setFabPositionMode = (mode) => {
+      fabPositionMode = mode;
+    };
 
-    repositionFab(fab);
-    window.addEventListener("scroll", scheduleReposition, { passive: true, capture: true });
-    window.addEventListener("resize", scheduleReposition);
+    setupFabDrag(fab, setFabPositionMode);
 
-    const observer = new MutationObserver(scheduleReposition);
+    const savedFabPosition = await loadFabPosition();
+    if (savedFabPosition.mode === "custom") {
+      fabPositionMode = "custom";
+      applyCustomFabPosition(fab, savedFabPosition.left, savedFabPosition.top);
+    } else {
+      repositionFab(fab);
+    }
+
+    const scheduleFabLayout = debounce(() => {
+      if (fabPositionMode === "custom") {
+        const left = parseFloat(fab.style.left) || FAB_MARGIN;
+        const top = parseFloat(fab.style.top) || FAB_MARGIN;
+        applyCustomFabPosition(fab, left, top);
+        return;
+      }
+      repositionFab(fab);
+    }, 150);
+
+    window.addEventListener("scroll", scheduleFabLayout, { passive: true, capture: true });
+    window.addEventListener("resize", scheduleFabLayout);
+
+    const observer = new MutationObserver(() => {
+      if (fabPositionMode !== "custom") scheduleFabLayout();
+    });
     observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 
+    let summarizeClickTimer = null;
+
+    fab.addEventListener("dblclick", (e) => {
+      e.preventDefault();
+      if (summarizeClickTimer) {
+        clearTimeout(summarizeClickTimer);
+        summarizeClickTimer = null;
+      }
+    });
+
     fab.addEventListener("click", async () => {
+      if (summarizeClickTimer) clearTimeout(summarizeClickTimer);
+      summarizeClickTimer = setTimeout(async () => {
+        summarizeClickTimer = null;
       const isYouTube = window.PageSummarizerYouTube?.isWatchPage();
       openDialogLoading(root, {
         title: isYouTube ? "YouTube video" : document.title,
@@ -354,6 +509,7 @@
           err.message || "Could not generate a summary. Add your OpenAI API key in the extension popup."
         );
       }
+      }, 250);
     });
 
     overlay.addEventListener("click", (e) => {

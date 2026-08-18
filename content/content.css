@@ -32,7 +32,7 @@
   border-radius: 50%;
   background: transparent;
   color: rgba(99, 102, 241, 0.7);
-  cursor: pointer;
+  cursor: grab;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,6 +66,20 @@
   right: auto;
   left: 28px;
   bottom: 96px;
+}
+
+.ps-fab.ps-fab-custom {
+  right: auto;
+  bottom: auto;
+}
+
+.ps-fab.ps-fab-dragging {
+  cursor: grabbing;
+  transition: none;
+  transform: scale(1.05);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+  box-shadow: 0 6px 28px rgba(99, 102, 241, 0.55);
 }
 
 .ps-fab:hover {

@@ -1,6 +1,6 @@
 {
   "name": "page-summarizer",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "Summarize webpages and YouTube videos with a floating button and save summaries for later",
   "private": true,
   "scripts": {
